@@ -10,7 +10,7 @@
 #
 
 # common options
-REVISION="5.25$SUBREVISION" # all boards have same revision
+REVISION="5.26$SUBREVISION" # all boards have same revision
 ROOTPWD="1234" # Must be changed @first login
 MAINTAINER="Igor Pecovnik" # deb signature
 MAINTAINERMAIL="igor.pecovnik@****l.com" # deb signature
@@ -19,7 +19,7 @@ USEALLCORES=yes # Use all CPU cores for compiling
 EXIT_PATCHING_ERROR="" # exit patching if failed
 HOST="$BOARD" # set hostname to the board
 CACHEDIR=$DEST/cache
-ROOTFSCACHE_VERSION=2
+ROOTFSCACHE_VERSION=3
 
 [[ -z $ROOTFS_TYPE ]] && ROOTFS_TYPE=ext4 # default rootfs type is ext4
 [[ "ext4 f2fs btrfs nfs fel" != *$ROOTFS_TYPE* ]] && exit_with_error "Unknown rootfs type" "$ROOTFS_TYPE"
@@ -48,12 +48,10 @@ if [[ $USE_GITHUB_UBOOT_MIRROR == yes ]]; then
 else
 	MAINLINE_UBOOT_SOURCE='git://git.denx.de/u-boot.git'
 fi
-#MAINLINE_UBOOT_BRANCH="v$(git ls-remote git://git.denx.de/u-boot.git | grep -v rc | grep -v '\^' | tail -1 | cut -d'v' -f 2)"
 MAINLINE_UBOOT_BRANCH='tag:v2017.01'
 MAINLINE_UBOOT_DIR='u-boot'
 
 # Let's set default data if not defined in board configuration above
-
 OFFSET=1 # Bootloader space in MB (1 x 2048 = default)
 ARCH=armhf
 KERNEL_IMAGE_TYPE=zImage
@@ -67,11 +65,10 @@ SDCARD="sdcard-${BRANCH}-${BOARD}-${RELEASE}-${BUILD_DESKTOP}"
 MOUNT="mount-${BRANCH}-${BOARD}-${RELEASE}-${BUILD_DESKTOP}"
 DESTIMG="image-${BRANCH}-${BOARD}-${RELEASE}-${BUILD_DESKTOP}"
 
-if [[ -f $SRC/lib/config/sources/$LINUXFAMILY.conf ]]; then
-	source $SRC/lib/config/sources/$LINUXFAMILY.conf
-else
+[[ ! -f $SRC/lib/config/sources/$LINUXFAMILY.conf ]] && \
 	exit_with_error "Sources configuration not found" "$LINUXFAMILY"
-fi
+
+source $SRC/lib/config/sources/$LINUXFAMILY.conf
 
 if [[ -f $SRC/userpatches/sources/$LINUXFAMILY.conf ]]; then
 	display_alert "Adding user provided $LINUXFAMILY overrides"
@@ -98,13 +95,11 @@ esac
 
 # Here we want to use linux-sunxi-next and linux-sunxi-dev configs for sun*i
 # except for sun8i-dev which is separate from sunxi-dev
-if [[ $LINUXFAMILY == sun*i && $BRANCH != default && ! ( $LINUXFAMILY == sun8i && $BRANCH == dev ) ]]; then
+[[ $LINUXFAMILY == sun*i && $BRANCH != default && ! ( $LINUXFAMILY == sun8i && $BRANCH == dev ) ]] && \
 	LINUXCONFIG="linux-sunxi-${BRANCH}"
-fi
 
 [[ -z $LINUXCONFIG ]] && LINUXCONFIG="linux-${LINUXFAMILY}-${BRANCH}"
 
-# naming to distro
 if [[ $RELEASE == xenial ]]; then DISTRIBUTION="Ubuntu"; else DISTRIBUTION="Debian"; fi
 
 # temporary hacks/overrides
@@ -184,6 +179,7 @@ if [[ $ARCH == arm64 ]]; then
 	PACKAGE_LIST_DESKTOP="${PACKAGE_LIST_DESKTOP/firefox/firefox:armhf}"
 fi
 [[ $BUILD_DESKTOP == yes ]] && PACKAGE_LIST="$PACKAGE_LIST $PACKAGE_LIST_DESKTOP"
+
 # debug
 cat <<-EOF >> $DEST/debug/output.log
 ## BUILD SCRIPT ENVIRONMENT

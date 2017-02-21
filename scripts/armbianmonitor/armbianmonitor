@@ -133,18 +133,6 @@ ParseOptions() {
 			DisplayUsage
 			exit 0
 			;;
-		b|B)
-			# toggle boot verbosity
-			if [ -f /boot/.force-verbose ]; then
-				rm /boot/.force-verbose
-				echo -e "Verbose kernel messages have been disabled. Please reboot for changes to take effect."
-			else
-				date "+%s" >/boot/.force-verbose
-				chmod 666 /boot/.force-verbose
-				echo -e "Verbose kernel messages have been enabled. Please reboot for changes to take effect."
-			fi
-			exit 0
-			;;
 		m|M)
 			# monitoring mode
 			echo -e "Stop monitoring using [ctrl]-[c]"
@@ -234,7 +222,6 @@ DisplayUsage() {
 		grep "^#" "$0" | grep -v "^#\!/bin/bash" | sed 's/^#//'
 	fi
 	echo -e "\n Use ${BOLD}armbianmonitor${NC} for the following tasks:\n"
-	echo -e " armbianmonitor ${BOLD}-b${NC} switches between verbose and normal boot"
 	echo -e " armbianmonitor ${BOLD}-c /path/to/test${NC} performs disk health/performance tests"
 	echo -e " armbianmonitor ${BOLD}-d${NC} tries to upload debug disk info to improve armbianmonitor"
 	echo -e " armbianmonitor ${BOLD}-m${NC} provides simple CLI monitoring"
@@ -690,6 +677,8 @@ CollectSupportInfo() {
 			[[ -e /boot/script.bin ]] && echo -e "\n### fex settings: $(ls -la /boot/script.bin)\n\n$(bin2fex /boot/script.bin 2>/dev/null)"
 			;;
 	esac
+	echo -e "\n### Loaded modules:\n\n$(lsmod)"
+	[[ -f /boot/armbianEnv.txt ]] && echo -e "\n### armbianEnv.txt:\n\n$(cat /boot/armbianEnv.txt)"
 	echo -e "\n### dmesg now:\n\n$(dmesg | tail -n 250)"
 	ls /tmp/armbianmonitor_checks_* >/dev/null 2>&1 || return
 	for file in /tmp/armbianmonitor_checks_* ; do
