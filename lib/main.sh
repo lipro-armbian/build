@@ -120,7 +120,7 @@ if [[ -n $REPOSITORY_UPDATE ]]; then
 
 	# For user override
 	if [[ -f $USERPATCHES_PATH/lib.config ]]; then
-		display_alert "Using user configuration override" "userpatches/lib.config" "info"
+		display_alert "Using user configuration override" "${USERPATCHES_PATH##${SRC}/}/lib.config" "info"
 	        source "$USERPATCHES_PATH"/lib.config
 	fi
 

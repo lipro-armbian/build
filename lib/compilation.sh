@@ -322,7 +322,7 @@ compile_kernel()
 		cp $DEST/config/$LINUXCONFIG.config .config
 	else
 		if [[ -f $USERPATCHES_PATH/$LINUXCONFIG.config ]]; then
-			display_alert "Using kernel config provided by user" "userpatches/$LINUXCONFIG.config" "info"
+			display_alert "Using kernel config provided by user" "${USERPATCHES_PATH##${SRC}/}/$LINUXCONFIG.config" "info"
 			cp $USERPATCHES_PATH/$LINUXCONFIG.config .config
 		else
 			display_alert "Using kernel config file" "config/kernel/$LINUXCONFIG.config" "info"
@@ -638,7 +638,7 @@ advanced_patch()
 	local description=$6
 
 	display_alert "Started patching process for" "$dest $description" "info"
-	display_alert "Looking for user patches in" "userpatches/$dest/$family" "info"
+	display_alert "Looking for user patches in" "${USERPATCHES_PATH##${SRC}/}/$dest/$family" "info"
 
 	local names=()
 	local dirs=(
