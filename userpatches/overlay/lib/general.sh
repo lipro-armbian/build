@@ -454,6 +454,13 @@ create_apt_source_list ()
 #                                   the fingerprint beginning with 0x
 #                         ppaname   The Ubuntu PPA name
 #
+# TODO:
+#  There is an issue with the Python aptsource package, that will generate
+#  a wrong distribution codename --> so the apt-add-repository tool will
+#  generate wrong source.list files and entries --> that have to investigate
+#  deeper later --> acutally we want to generate our own source.list file
+#  and use create_apt_source_list instead.
+#
 create_ppa_source_list ()
 {
 	local arg1; arg1=$(declare -p $1) || \
@@ -464,6 +471,17 @@ create_ppa_source_list ()
 		[[ -z ${options[$i]} ]] && \
 			display_alert "${FUNCNAME[0]}: EINVAL" "$1[$i]" "err"
 	done
+
+	# Because of the known issue, see TODO ebove:
+	display_alert "Convert PPA to APT source list entry" "TODO: issue #" "wrn"
+	local pv=($(tr ':/' ' ' <<< "${options[ppaname]} $(lsb_release -is) $(lsb_release -cs)"))
+	options[srcfile]=${pv[1],,}-${pv[3],,}-${pv[2],,}-${pv[4],,}.list
+	options[repourl]=http://${pv[0],,}.launchpad.net/${pv[1],,}/${pv[2],,}
+	options[repodir]=/${pv[3],,}
+	options[release]=${pv[4],,}
+	options[pkgcomp]=main
+	create_apt_source_list options
+	return
 
 	display_alert "Download and install OpenPGP publik key" "${options[ogpgpub]}" "info"
 	eval 'apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys ${options[ogpgpub]}' \
