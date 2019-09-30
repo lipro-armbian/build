@@ -1,0 +1,22 @@
+From 321e85c42bf15d220d261d63adaf42e200f265a9 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:43:46 +0200
+Subject: [PATCH 13/14] board: cubietruck-plus: white LED disk-activity
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts b/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts
+index f7bc36ab419a..275226affb19 100644
+--- a/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts
++++ b/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts
+@@ -77,6 +77,7 @@
+ 		white {
+ 			label = "cubietruck-plus:white:usr";
+ 			gpios = <&pio 3 27 GPIO_ACTIVE_HIGH>; /* PD27 */
++			linux,default-trigger = "disk-activity";
+ 		};
+ 
+ 		green {
