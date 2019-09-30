@@ -93,6 +93,11 @@ Main()
 				# OMV 3 image on jessie
 				# OMV 4 image on stretch
 				;;
+			deadsnakes)
+				InstallDeadSnakes # to get an:
+				# Python 3.1 - 3.8 on xenial or bionic
+				# Python 2.3 - 2.7 on xenial or bionic
+				;;
 			docker)
 				InstallDocker # to get an:
 				# CE when options has community (default)
@@ -135,6 +140,17 @@ SystemClenup()
 	# ... so machines get unique ID generated on boot.
 	truncate -s 0 /etc/machine-id
 } # SystemClenup
+
+InstallDeadSnakes()
+{
+	DEADSNAKES_OPTIONS+=(${RELEASE,,})
+	display_alert "Run installation" \
+		"$SRV $(eval 'echo ${DEADSNAKES_OPTIONS[@]}')" "ext"
+	create_service_options SRV DEADSNAKES_OPTIONS
+	display_alert "With options" "$(eval 'echo ${DEADSNAKES[@]}')"
+	create_ppa_source_list DEADSNAKES
+	install_apt_get DEADSNAKES
+} # InstallDeadSnakes
 
 InstallDocker()
 {
