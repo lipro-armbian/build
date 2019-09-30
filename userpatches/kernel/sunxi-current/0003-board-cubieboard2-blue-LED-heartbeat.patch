@@ -1,0 +1,22 @@
+From a8707cc0e046e5bcee5bbcac9456a90ab7981863 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:30:58 +0200
+Subject: [PATCH 03/14] board: cubieboard2: blue LED heartbeat
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun7i-a20-cubieboard2.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+index 942ac9dfd4a5..1866408a315f 100644
+--- a/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
++++ b/arch/arm/boot/dts/sun7i-a20-cubieboard2.dts
+@@ -80,6 +80,7 @@
+ 		blue {
+ 			label = "cubieboard2:blue:usr";
+ 			gpios = <&pio 7 21 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "heartbeat";
+ 		};
+ 
+ 		green {
