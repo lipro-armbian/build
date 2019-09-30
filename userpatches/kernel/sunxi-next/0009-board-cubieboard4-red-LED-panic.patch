@@ -1,0 +1,22 @@
+From 2d1209e3af1da2285e0ddbab87dc9fc2d2491db4 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:32:27 +0200
+Subject: [PATCH 09/14] board: cubieboard4: red LED panic
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun9i-a80-cubieboard4.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts b/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts
+index 85da85faf869..7da25583e70d 100644
+--- a/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts
++++ b/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts
+@@ -71,6 +71,7 @@
+ 		red {
+ 			label = "cubieboard4:red:usr";
+ 			gpios = <&pio 7 6 GPIO_ACTIVE_HIGH>; /* PH6 */
++			linux,default-trigger = "panic";
+ 		};
+ 	};
+ 
