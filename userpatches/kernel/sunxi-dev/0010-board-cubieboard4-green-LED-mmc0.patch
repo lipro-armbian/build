@@ -1,0 +1,22 @@
+From 631a501d4dc43f8c11ebc757ab61f843dc100f3f Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:41:01 +0200
+Subject: [PATCH 10/14] board: cubieboard4: green LED mmc0
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun9i-a80-cubieboard4.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts b/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts
+index 6f8e97830d54..22ebafb63196 100644
+--- a/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts
++++ b/arch/arm/boot/dts/sun9i-a80-cubieboard4.dts
+@@ -66,6 +66,7 @@
+ 		green {
+ 			label = "cubieboard4:green:usr";
+ 			gpios = <&pio 7 17 GPIO_ACTIVE_HIGH>; /* PH17 */
++			linux,default-trigger = "mmc0";
+ 		};
+ 
+ 		red {
