@@ -1,0 +1,22 @@
+From b66cf90bd8fa9a65b5ee48eb9b97f94e2820c450 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:38:52 +0200
+Subject: [PATCH 02/14] board: cubieboard: green LED mmc0
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun4i-a10-cubieboard.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun4i-a10-cubieboard.dts b/arch/arm/boot/dts/sun4i-a10-cubieboard.dts
+index 9e65af878754..eb25c0b5886b 100644
+--- a/arch/arm/boot/dts/sun4i-a10-cubieboard.dts
++++ b/arch/arm/boot/dts/sun4i-a10-cubieboard.dts
+@@ -84,6 +84,7 @@
+ 		green {
+ 			label = "cubieboard:green:usr";
+ 			gpios = <&pio 7 20 GPIO_ACTIVE_HIGH>; /* LED2 */
++			linux,default-trigger = "mmc0";
+ 		};
+ 	};
+ };
