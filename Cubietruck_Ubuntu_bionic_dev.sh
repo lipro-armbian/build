@@ -29,4 +29,5 @@ exec ./compile.sh docker \
 	RELEASE=bionic \
 	BUILD_DESKTOP=no \
 	KERNEL_ONLY=no \
-	KERNEL_CONFIGURE=no
+	KERNEL_CONFIGURE=no \
+	CUSTOMIZE_WITH="Docker,community,compose"
