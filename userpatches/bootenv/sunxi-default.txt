@@ -1,0 +1,5 @@
+verbosity=8
+console=serial
+extraargs=earlyprintk
+logo=disabled
+disp_mode=1920x1080p60
