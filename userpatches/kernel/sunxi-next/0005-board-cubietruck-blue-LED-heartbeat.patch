@@ -1,0 +1,22 @@
+From 09e7f005f78fcbfc1e28f1dd05e689a8bff28fe5 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:31:39 +0200
+Subject: [PATCH 05/14] board: cubietruck: blue LED heartbeat
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun7i-a20-cubietruck.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+index 5649161de1d7..a4dfd8effc8e 100644
+--- a/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
++++ b/arch/arm/boot/dts/sun7i-a20-cubietruck.dts
+@@ -80,6 +80,7 @@
+ 		blue {
+ 			label = "cubietruck:blue:usr";
+ 			gpios = <&pio 7 21 GPIO_ACTIVE_HIGH>;
++			linux,default-trigger = "heartbeat";
+ 		};
+ 
+ 		orange {
