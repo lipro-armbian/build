@@ -16,6 +16,9 @@
 # Hold all services that have to process for image customization.
 declare -g -a CUSTOMIZE_SERVICES
 
+# Hold all Docker related setup and configuration options.
+declare -g -A DOCKER
+
 
 # Functions:
 # uniq_sorted
@@ -23,6 +26,7 @@ declare -g -a CUSTOMIZE_SERVICES
 # foreach
 # __extend_service_list (internal used lambda function)
 # create_service_list
+# __extend_docker_options (internal used lambda function)
 # create_service_options
 # create_apt_source_list
 # create_ppa_source_list
@@ -153,6 +157,111 @@ create_service_list ()
 	fi
 }
 
+# __extend_docker_options <index> <option>
+#
+# Extend the list of Docker options (DOCKER).
+# NOTE: This is an internal lambda function used by create_service_options().
+#
+# Parameters:
+#  <index>    The index of given option string.
+#  <option>   The option string with syntax as defined for <docker_options>
+#             in the calling function create_service_options(), see there.
+#
+# Results:
+#   DOCKER[ogpgpub]   The OpenPGP public key of the remote APT repository.
+#   DOCKER[repourl]   The URL of the remote APT repository.
+#   DOCKER[repodir]   The DIR after URL of the remote APT repository (normal empty).
+#   DOCKER[release]   The release string for the APT repository definition.
+#   DOCKER[srcfile]   The Debian APT source list file name.
+#
+# See:
+#   https://docs.docker.com/engine/installation/linux/debian/
+#   https://docs.docker.com/engine/installation/linux/ubuntu/
+#   https://docs.docker.com/install/linux/docker-ee/ubuntu/#prerequisites
+#   https://docs.docker.com/install/linux/docker-ee/ubuntu/#install-docker-ee
+#   https://docs.docker.com/compose/install/#install-using-pip
+#
+# OpenPGP:
+#   2015:
+#     EE: https://keyserver.ubuntu.com/pks/lookup?search=0xA178AC6C6238F52E&op=index
+#     CE: https://keyserver.ubuntu.com/pks/lookup?search=0xF76221572C52609D&op=index
+#   2017:
+#     EE: https://keyserver.ubuntu.com/pks/lookup?search=0xBC14F10B6D085F96&op=index
+#     CE: https://keyserver.ubuntu.com/pks/lookup?search=0x8D81803C0EBFCD88&op=index
+#
+# APT Repository:
+#   2015:
+#     EE: https://packages.docker.com/1.13/apt/repo
+#     CE: https://apt.dockerproject.org/repo
+#   2017:
+#     EE: <personal subscription on Docker HUB> (TODO: setup from outside)
+#     CE: https://download.docker.com/linux
+#
+# DEB Packages:
+#   2015:
+#     EE: docker-engine
+#     CE: docker-engine
+#   2017:
+#     EE: docker-ee docker-ee-cli containerd.io
+#     CE: docker-ce docker-ce-cli containerd.io
+#
+__extend_docker_options ()
+{
+	local opt=$2
+
+	case $opt in
+		stretch|buster)
+			# The Debian release of the Docker Engine.
+			# DOCKER[release]=debian-$opt # obsolete, since 2018
+			DOCKER[repodir]=/debian
+			DOCKER[release]=$opt
+			;;
+		xenial|bionic)
+			# The Ubuntu release of the Docker Engine.
+			# DOCKER[release]=ubuntu-$opt # obsolete, since 2018
+			DOCKER[repodir]=/ubuntu
+			DOCKER[release]=$opt
+			;;
+		commercial*)
+			# The commercially supported version of the Docker Engine.
+			DOCKER[ogpgpub]=0xBC14F10B6D085F96
+			DOCKER[srcfile]=dockerproject.list
+			# commercial : major_minor --> repository version (default 19.03)
+			local rv=($(tr ':' ' ' <<< "$opt"))
+			DOCKER[repourl]=https://packages.docker.com/${rv[1]:-19.03}/apt/repo
+			DOCKER[pkgcomp]=main
+			DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "docker-ee")
+			DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "docker-ee-cli")
+			DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "containerd.io")
+			;;
+		community*)
+			# The community supported version of the Docker Engine.
+			DOCKER[ogpgpub]=0x8D81803C0EBFCD88
+			DOCKER[srcfile]=dockerproject.list
+			DOCKER[repourl]=https://download.docker.com/linux
+			DOCKER[pkgcomp]=stable
+			DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "docker-ce")
+			DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "docker-ce-cli")
+			DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "containerd.io")
+			;;
+		compose*)
+			# The Docker Compose tool.
+			# compose* : major_minor_patch --> package version (default 1.24.1)
+			local pv=($(tr ':' ' ' <<< "$opt"))
+			# compose - inst_src --> installation source (default pip)
+			local is=($(tr '-' ' ' <<< "${pv[0]}"))
+			case ${is[1]:-pip} in
+				pip*)
+					DOCKER[pkglist]=$(uniq_sorted "${DOCKER[pkglist]}" "python-pip")
+					DOCKER[pipies]=$(uniq_orderly "${DOCKER[pipies]}" "setuptools")
+					DOCKER[pipies]=$(uniq_orderly "${DOCKER[pipies]}" "wheel")
+					DOCKER[pipies]=$(uniq_orderly "${DOCKER[pipies]}" "pynacl:1.3.0")
+					DOCKER[pipies]=$(uniq_orderly "${DOCKER[pipies]}" "docker-compose:${pv[1]:-1.24.1}")
+					;;
+			esac
+	esac
+}
+
 # create_service_options <service_name> <service_options_name>
 #
 # Parse environment variable <SERVICE>_OPTIONS or the given arguments
@@ -169,10 +278,29 @@ create_service_list ()
 #                            the service with following syntax.
 #
 # Option string syntax (indexed array):
-#   <service_options> := TODO
+#   <service_options> := <docker_options>
+#    <docker_options>    The Docker service option string.
+#
+# Docker option string syntax (indexed array):
+#    <docker_options> := (<release> <version>)
+#           <release> := stretch | buster | xenial | bionic
+#           <version> := community | commercial[:<major_minor>]
+#                        <major_minor> := 19.03 | 18.09 | 18.03 | 17.06
 #
 # Results:
-#   <SERVICE>[pkglist]   The list of Debian package names.
+#   optional, when supported / needed:
+#     <SERVICE>[srcfile] The Debian APT source list file name.
+#     <SERVICE>[ogpgpub] The OpenPGP publik key (64-bit).
+#     <SERVICE>[ppaname] The Ubuntu PPA name.
+#     <SERVICE>[repourl] The Debian package repository URL.
+#     <SERVICE>[repodir] The Debian package repository DIR after URL.
+#     <SERVICE>[release] The Debian OS release name.
+#     <SERVICE>[pkgcomp] The Debian APT component name.
+#   obligatory, must set at least:
+#     <SERVICE>[pkglist] The list of Debian package names.
+#
+# See:
+#   __extend_docker_options ()
 #
 create_service_options ()
 {
@@ -187,6 +315,14 @@ create_service_options ()
 	case $service in
 		omv)
 			# your code here
+			;;
+		docker)
+			# Prefer the community version as default. Will be
+			# overridden by the commercial option in the rest of
+			# the origin option list.
+			options=(community ${options[@]})
+			foreach options __extend_docker_options
+			# TODO: error on commercial && community
 			;;
 	esac
 }
