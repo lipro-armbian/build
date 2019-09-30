@@ -1,0 +1,22 @@
+From 0a701b716aeef6cb02d55c20eaf9f6af17d3c825 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Fri, 20 Sep 2019 17:41:24 +0200
+Subject: [PATCH 12/14] board: cubietruck-plus: green LED mmc0
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts b/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts
+index 1c1216235ebb..71ffba59d485 100644
+--- a/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts
++++ b/arch/arm/boot/dts/sun8i-a83t-cubietruck-plus.dts
+@@ -82,6 +82,7 @@
+ 		green {
+ 			label = "cubietruck-plus:green:usr";
+ 			gpios = <&pio 4 4 GPIO_ACTIVE_HIGH>; /* PE4 */
++			linux,default-trigger = "mmc0";
+ 		};
+ 	};
+ 
