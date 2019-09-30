@@ -16,6 +16,9 @@
 # Hold all services that have to process for image customization.
 declare -g -a CUSTOMIZE_SERVICES
 
+# Hold all DeadSnakes related setup and configuration options.
+declare -g -A DEADSNAKES
+
 # Hold all Docker related setup and configuration options.
 declare -g -A DOCKER
 
@@ -26,6 +29,7 @@ declare -g -A DOCKER
 # foreach
 # __extend_service_list (internal used lambda function)
 # create_service_list
+# __extend_deadsnakes_options (internal used lambda function)
 # __extend_docker_options (internal used lambda function)
 # create_service_options
 # create_apt_source_list
@@ -157,6 +161,49 @@ create_service_list ()
 	fi
 }
 
+# __extend_deadsnakes_options <index> <option>
+#
+# Extend the list of DeadSnakes options (DEADSNAKES).
+# NOTE: This is an internal lambda function used by create_service_options().
+#
+# Parameters:
+#  <index>    The index of given option string.
+#  <option>   The option string with syntax as defined for <deadsn_options>
+#             in the calling function create_service_options(), see there.
+#
+# Results:
+#   DEADSNAKES[ogpgpub]   The OpenPGP public key of the remote APT repository.
+#   DEADSNAKES[ppaname]   The Ubuntu PPA name of the remote APT repository.
+#
+# See:
+#   https://github.com/deadsnakes
+#   https://launchpad.net/~deadsnakes/+archive/ubuntu/ppa
+#
+# OpenPGP:
+#   2017: https://keyserver.ubuntu.com/pks/lookup?search=0xBA6932366A755776&op=index
+#
+# APT Repository:
+#   2017: http://ppa.launchpad.net/deadsnakes/ppa/ubuntu
+#
+# DEB Packages:
+#   2017: python#.# python#.#-dev python#.#-venv python#.#-distutils python#.#-lib2to3 python#.#-gdbm python#.#-tk
+#
+__extend_deadsnakes_options ()
+{
+	local opt=$2
+
+	case $opt in
+		xenial|bionic)
+			# The Ubuntu release of DeadSnakes.
+			DEADSNAKES[ogpgpub]=0xBA6932366A755776
+			DEADSNAKES[ppaname]=ppa:deadsnakes/ppa
+			;;
+		python*)
+			DEADSNAKES[pkglist]=$(uniq_sorted "${DEADSNAKES[pkglist]}" "$opt")
+			;;
+	esac
+}
+
 # __extend_docker_options <index> <option>
 #
 # Extend the list of Docker options (DOCKER).
@@ -278,8 +325,16 @@ __extend_docker_options ()
 #                            the service with following syntax.
 #
 # Option string syntax (indexed array):
-#   <service_options> := <docker_options>
+#   <service_options> := <deadsn_options> | <docker_options>
+#    <deadsn_options>    The DeadSnakes service option string.
 #    <docker_options>    The Docker service option string.
+#
+# DeadSnakes option string syntax (indexed array):
+#    <deadsn_options> := (<release> <debs>)
+#           <release> := xenial | bionic
+#              <debs> := python<py_version>[-<py_part>]
+#                        <py_version> := 2.{3..7} | 3.{1..8}
+#                        <py_part>    := dev | venv | distutils | lib2to3 | gdbm | tk
 #
 # Docker option string syntax (indexed array):
 #    <docker_options> := (<release> <version>)
@@ -300,6 +355,7 @@ __extend_docker_options ()
 #     <SERVICE>[pkglist] The list of Debian package names.
 #
 # See:
+#   __extend_deadsnakes_options ()
 #   __extend_docker_options ()
 #
 create_service_options ()
@@ -315,6 +371,13 @@ create_service_options ()
 	case $service in
 		omv)
 			# your code here
+			;;
+		deadsnakes)
+			# Prefer the Python 3.8 version as default. Will be
+			# overridden by other version option in the rest of
+			# the origin option list.
+			options=(python3.8 ${options[@]})
+			foreach options __extend_deadsnakes_options
 			;;
 		docker)
 			# Prefer the community version as default. Will be
