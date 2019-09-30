@@ -93,9 +93,13 @@ Main()
 				# OMV 3 image on jessie
 				# OMV 4 image on stretch
 				;;
+			docker)
+				InstallDocker # to get an:
+				# CE when options has community (default)
+				# EE when options has commercial
+				;;
 			*)
 				display_alert "${FUNCNAME[0]}: ENOTSUP" "$SRV" "err"
-				;;
 		esac
 	done
 	SystemClenup
@@ -131,6 +135,22 @@ SystemClenup()
 	# ... so machines get unique ID generated on boot.
 	truncate -s 0 /etc/machine-id
 } # SystemClenup
+
+InstallDocker()
+{
+	local -A prereq
+	prereq[pkglist]="apt-transport-https ca-certificates curl gnupg2 software-properties-common"
+	DOCKER_OPTIONS+=(${RELEASE,,})
+	display_alert "Run installation" \
+		"$SRV $(eval 'echo ${DOCKER_OPTIONS[@]}')" "ext"
+	create_service_options SRV DOCKER_OPTIONS
+	display_alert "With prerequests" "$(eval 'echo ${prereq[@]}')"
+	install_apt_get prereq
+	display_alert "With options" "$(eval 'echo ${DOCKER[@]}')"
+	create_apt_source_list DOCKER
+	install_apt_get DOCKER
+	if [[ ${DOCKER_OPTIONS[@]} == *compose* ]]; then install_pipies DOCKER; fi
+} # InstallDocker
 
 InstallOpenMediaVault()
 {
