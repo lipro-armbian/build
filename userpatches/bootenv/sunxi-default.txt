@@ -1,0 +1,5 @@
+verbosity=8
+console=serial
+extraargs=earlycon
+logo=disabled
+disp_mode=1920x1080p60
