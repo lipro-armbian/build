@@ -3,27 +3,73 @@
 # arguments: $RELEASE $LINUXFAMILY $BOARD $BUILD_DESKTOP
 #
 # This is the image customization script
-
+#
 # NOTE: It is copied to /tmp directory inside the image
-# and executed there inside chroot environment
-# so don't reference any files that are not already installed
-
+# and executed there inside chroot environment so don't reference
+# any files that are not already installed.
+#
 # NOTE: If you want to transfer files between chroot and host
-# userpatches/overlay directory on host is bind-mounted to /tmp/overlay in chroot
+# $USERPATCHES_PATH/overlay directory on host is bind-mounted
+# to /tmp/overlay in chroot. Use CUSTOMIZE_IMAGE_BINDRW=yes to
+# have writable access to the bind-mounted overlay from inside
+# the chroot environment.
+#
+# Copyright (c) 2017-2019 Stephan Linz <linz@li-pro.net>
+#
+# This file is licensed under the terms of the GNU General Public
+# License version 2. This program is licensed "as is" without any
+# warranty of any kind, whether express or implied.
+#
+# This file is a part of tool chain https://github.com/lipro-armbian/build
+#
 
 RELEASE=$1
 LINUXFAMILY=$2
 BOARD=$3
 BUILD_DESKTOP=$4
 
-Main() {
+# We'll use this title on all menus
+backtitle="Armbian customization, https://github.com/lipro-armbian | Author: Stephan Linz"
+
+SRC="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+# fallback for Trusty
+[[ -z "${SRC}" ]] && SRC="$(pwd)"
+
+DOWNLOADS="${SRC}"/downloads
+OVERLAY="${SRC}"/overlay
+DEST="${OVERLAY}"/output
+
+mkdir -p $DOWNLOADS
+mkdir -p $DEST
+
+# Remove and preset important environment variables.
+unset SUDO_USER
+unset XAUTHORITY
+export HOME=/root
+export LANG=C
+
+# Include variables and functions as exported from host
+# by the script: customize-image-host.sh
+[[ -f "${OVERLAY}"/input/variables.sh ]] && source "${OVERLAY}"/input/variables.sh
+[[ -f "${OVERLAY}"/input/functions.sh ]] && source "${OVERLAY}"/input/functions.sh
+
+# Include here to make generic installation functions available.
+[[ -f "${OVERLAY}"/lib/general.sh ]] && source "${OVERLAY}"/lib/general.sh
+
+# Prepare service list that have to process.
+[[ -z "$CUSTOMIZE_WITH" ]] && CUSTOMIZE_WITH=""
+create_service_list CUSTOMIZE_WITH
+
+Main()
+{
+	display_alert "Starting release specific customization process" \
+		"$BOARD $RELEASE" "ext"
 	case $RELEASE in
 		xenial)
 			# your code here
 			;;
 		stretch)
 			# your code here
-			# InstallOpenMediaVault # uncomment to get an OMV 4 image
 			;;
 		buster)
 			# your code here
@@ -32,9 +78,59 @@ Main() {
 			# your code here
 			;;
 	esac
+
+	# change_root_to_operator
+
+	display_alert "Starting common customization process" \
+		"$(eval 'echo ${CUSTOMIZE_SERVICES[@]}')" "ext"
+	for SRV in ${CUSTOMIZE_SERVICES[@]}; do
+		case $SRV in
+			omv)
+				InstallOpenMediaVault # to get an:
+				# OMV 3 image on jessie
+				# OMV 4 image on stretch
+				;;
+			*)
+				display_alert "${FUNCNAME[0]}: ENOTSUP" "$SRV" "err"
+				;;
+		esac
+	done
+	SystemClenup
 } # Main
 
-InstallOpenMediaVault() {
+SystemClenup()
+{
+	local -A to_purge
+	display_alert "Run system cleanup" "PKG,CACHE,LOG,DUID" "ext"
+# TODO:	display_alert "Delete" "development packages"
+# TODO:	to_purge[pkglist]="$(dpkg --list | awk '{ print $2 }' | grep -- '-dev$')"
+# TODO:	# exclude 'apt-mark showhold' and 'armbian-config'
+# TODO:	# check for empty list
+# TODO:	purge_apt_get to_purge
+# TODO:	display_alert "Delete" "document packages"
+# TODO:	to_purge[pkglist]="$(dpkg --list | awk '{ print $2 }' | grep -- '-doc$')"
+# TODO:	# check for empty list
+# TODO:	purge_apt_get to_purge
+	display_alert "Delete" "obsolete networking"
+	to_purge[pkglist]="ppp pppconfig pppoeconf"
+	purge_apt_get to_purge
+	display_alert "Delete" "oddities"
+	to_purge[pkglist]="popularity-contest installation-report \
+		command-not-found command-not-found-data friendly-recovery \
+		fonts-ubuntu-font-family-console laptop-detect"
+		# NOT YET: bash-completion
+	purge_apt_get to_purge
+	display_alert "Delete" "caches"
+	clean_apt_cache
+	find /var/cache -type f -exec rm -rf {} \;
+	find /var/log/ -name *.log -exec rm -f {} \;
+	display_alert "Blank" "netplan machine-id (DUID)"
+	# ... so machines get unique ID generated on boot.
+	truncate -s 0 /etc/machine-id
+} # SystemClenup
+
+InstallOpenMediaVault()
+{
 	# use this routine to create a Debian based fully functional OpenMediaVault
 	# image (OMV 3 on Jessie, OMV 4 with Stretch). Use of mainline kernel highly
 	# recommended!
@@ -213,7 +309,8 @@ InstallOpenMediaVault() {
 	chage -d 0 root
 } # InstallOpenMediaVault
 
-UnattendedStorageBenchmark() {
+UnattendedStorageBenchmark()
+{
 	# Function to create Armbian images ready for unattended storage performance testing.
 	# Useful to use the same OS image with a bunch of different SD cards or eMMC modules
 	# to test for performance differences without wasting too much time.
