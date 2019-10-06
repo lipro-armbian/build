@@ -25,4 +25,4 @@ exec ./compile.sh docker \
 	BUILD_DESKTOP=no \
 	KERNEL_ONLY=no \
 	KERNEL_CONFIGURE=no \
-	CUSTOMIZE_WITH="Docker,community,compose"
+	CUSTOMIZE_WITH="DeadSnakes,python,python2.7,python3.8,python3.8-venv,python3.8-lib2to3&Docker,community,compose"
