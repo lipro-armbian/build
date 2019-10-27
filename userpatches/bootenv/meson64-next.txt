@@ -1,0 +1,7 @@
+verbosity=8
+logo=disabled
+console=serial
+extraargs=earlycon
+ethaddr=00:50:43:84:fb:2f
+
+
