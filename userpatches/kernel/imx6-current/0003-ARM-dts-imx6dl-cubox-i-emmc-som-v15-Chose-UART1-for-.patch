@@ -1,0 +1,24 @@
+From 86d4a8c6521652ac56f565cdf83feea503739ff7 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Mon, 28 Oct 2019 18:33:07 +0100
+Subject: [PATCH 03/18] ARM: dts: imx6dl-cubox-i-emmc-som-v15: Chose UART1 for
+ STDOUT path
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dts b/arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dts
+index 2b2fc360b865..64882f9f3de1 100644
+--- a/arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dts
++++ b/arch/arm/boot/dts/imx6dl-cubox-i-emmc-som-v15.dts
+@@ -49,4 +49,8 @@
+ / {
+ 	model = "SolidRun Cubox-i Solo/DualLite (1.5som+emmc)";
+ 	compatible = "solidrun,cubox-i/dl", "fsl,imx6dl";
++
++        chosen {
++                stdout-path = "serial0:115200n8";
++        };
+ };
