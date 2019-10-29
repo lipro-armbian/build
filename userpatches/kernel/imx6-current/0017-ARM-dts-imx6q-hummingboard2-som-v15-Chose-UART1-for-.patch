@@ -1,0 +1,26 @@
+From 31d467513b6b4365e522ecea9a74e84d7304e308 Mon Sep 17 00:00:00 2001
+From: Stephan Linz <linz@li-pro.net>
+Date: Mon, 28 Oct 2019 18:33:12 +0100
+Subject: [PATCH 17/18] ARM: dts: imx6q-hummingboard2-som-v15: Chose UART1 for
+ STDOUT path
+
+Signed-off-by: Stephan Linz <linz@li-pro.net>
+---
+ arch/arm/boot/dts/imx6q-hummingboard2-som-v15.dts | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/boot/dts/imx6q-hummingboard2-som-v15.dts b/arch/arm/boot/dts/imx6q-hummingboard2-som-v15.dts
+index d3ad7329cd6d..69325852a174 100644
+--- a/arch/arm/boot/dts/imx6q-hummingboard2-som-v15.dts
++++ b/arch/arm/boot/dts/imx6q-hummingboard2-som-v15.dts
+@@ -51,6 +51,10 @@
+ / {
+ 	model = "SolidRun HummingBoard2 Dual/Quad (1.5som)";
+ 	compatible = "solidrun,hummingboard2/q", "fsl,imx6q";
++
++        chosen {
++                stdout-path = "serial0:115200n8";
++        };
+ };
+ 
+ &sata {
